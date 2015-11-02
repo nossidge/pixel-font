@@ -5,9 +5,6 @@
 # Array representation of the Silkscreen font.
 # Includes all the characters in the font, plus some additional ones.
 # http://kottke.org/plus/type/silkscreen/
-# 
-# If this file is called from the command line, create a png image for each
-#   character using the file 'num_to_pic.rb'
 ################################################################################
 
 require_relative 'valid_filename.rb'
@@ -51,9 +48,53 @@ class PixelFont
 		@space_width
 	end
 	
+	##############################################################################
+	
+	# Compass directions are in the order: side, then direction of the tail.
+	# So @balloon_tail_WS is on the left side, with the arrow pointing down.
+	# Apparently, the pointy bit on a speech balloon is called a "tail"...
+	def initialize_speech_balloon_tails
+		@balloon_tail_SW = [
+			'  10001',
+			'  10001',
+			' 10001 ',
+			' 1001  ',
+			' 111   ',
+			'1      '
+		]
+		@balloon_tail_SE = @balloon_tail_SW.map { |i| i.reverse }
+		@balloon_tail_NW = @balloon_tail_SW.reverse
+		@balloon_tail_NE = @balloon_tail_NW.map { |i| i.reverse }
+		
+		# Rotate 90 degrees for the sides.
+		arr_size = @balloon_tail_NE[0].length
+		@balloon_tail_WS = Array.new(arr_size,'')
+		@balloon_tail_NE.each do |line|
+			0.upto(arr_size-1) do |char_i|
+				@balloon_tail_WS[char_i] += line[char_i]
+			end
+		end
+		@balloon_tail_ES = @balloon_tail_WS.map { |i| i.reverse }
+		@balloon_tail_WN = @balloon_tail_WS.reverse
+		@balloon_tail_EN = @balloon_tail_WN.map { |i| i.reverse }
+	end
+	private :initialize_speech_balloon_tails
+	
+  ##############################################################################
+	
+	# Reset spacing to the original initialisation.
+	def reset_spacing
+		self.leading = 1
+		self.tracking = 2
+		self.space_width = 2
+	end
+	
   ##############################################################################
 	
 	def initialize
+		
+		# These are all constant when created, so just generate them once.
+		initialize_speech_balloon_tails
 		
 		# Array representations of characters in the Silkscreen font.
 		# All character maps are arrays containing 7 strings of the same length.
@@ -61,9 +102,7 @@ class PixelFont
 		
 		# Simple initialise variables.
 		@text = nil
-		self.leading = 1
-		self.tracking = 2
-		self.space_width = 2
+		reset_spacing
 		
 		############################################################################
 		
@@ -971,7 +1010,7 @@ class PixelFont
 	##############################################################################
 	
 	# Draw a rounded rectangle around the Silkscreen array.
-	# Separate padding arguments for all four sides.class << self
+	# Separate padding arguments for all four sides.
 	def private_border(input_arr=@pixel_map, pad_n=3, pad_e=3, pad_s=3, pad_w=3)
 		output = input_arr
 		
@@ -980,8 +1019,8 @@ class PixelFont
 		
 		# Add padding '0' rows to start and end of array.
 		elem = '0' * output[0].length
-		pad_n.times { output = output.unshift elem }
-		pad_s.times { output = output.push    elem }
+		pad_n.times { output = output.unshift elem.clone }
+		pad_s.times { output = output.push    elem.clone }
 		
 		# Draw solid line left and right border lines.
 		output = output.map { |i| '1' + i + '1' }
@@ -994,8 +1033,8 @@ class PixelFont
 		
 		# Draw solid line top and bottom border lines.
 		elem = '00' + ('1' * (output[0].length-4) ) + '00'
-		output = output.unshift elem
-		output = output.push    elem
+		output = output.unshift elem.clone
+		output = output.push    elem.clone
 		
 		@pixel_map = output
 	end
@@ -1048,6 +1087,125 @@ class PixelFont
 			end
 		end
 	end
+	
+	##############################################################################
+	
+	def speech(direction, pixel_begin)
+		direction.upcase!
+		
+		# Validation.
+		if direction.length != 2
+			raise 'Direction must be 2 characters long, e.g. "NE", "WS"'
+		end
+		
+		# Top/Bottom, North/South.
+		if ['N','S'].include?(direction[0]) and ['E','W'].include?(direction[1])
+			output = speech_tail_NS(pixel_begin, direction[0], direction[1])
+		
+		# Left/Right, West/East.
+		elsif ['E','W'].include?(direction[0]) and ['N','S'].include?(direction[1])
+			output = speech_tail_EW(pixel_begin, direction[1], direction[0])
+		
+		else
+			raise 'Invalid direction argument'
+		end
+		
+		output
+	end
+	
+	########################################
+	
+	# Add a speech tail to the top or bottom.
+	def speech_tail_NS(pixel_begin, lat, long)
+		
+		# Get variable by dynamic lookup.
+		balloon_tail = instance_variable_get("@balloon_tail_#{lat}#{long}")
+		tail_height  = balloon_tail.length
+		tail_width   = balloon_tail[0].length
+		map_width    = @pixel_map[0].length
+		is_north     = ( lat  == 'N' )
+		is_west      = ( long == 'W' )
+		
+		# Validate height. Raise error if pixel_begin is too high.
+		if pixel_begin + tail_width > map_width
+			raise 'pixel_begin is too high for the current pixel_map'
+		end
+		
+		# Need to add a break in the top/bottom line of the pixel_map.
+		border_break = '10001'
+		pixel_end = pixel_begin + border_break.length
+		elem   = is_north ? 0 : -1
+		offset = is_west  ? 2 :  0
+		@pixel_map[elem][ (pixel_begin+offset)...(pixel_end+offset) ] = border_break
+		
+		# Create array with the appropriate balloon tail.
+		# For top/bottom tails, lengthen to the current width.
+		pixel_end = pixel_begin + tail_height
+		balloon_tail.map! do |i|
+			new = '0' * map_width
+			new[pixel_begin..pixel_end] = i.gsub(' ','0')
+			new
+		end
+		
+		# Add to the existing @pixel_map
+		if is_north
+			@pixel_map = balloon_tail + @pixel_map
+		else
+			@pixel_map = @pixel_map + balloon_tail
+		end
+	end
+	private :speech_tail_NS
+	
+	########################################
+	
+	# Add a speech tail to the left or right.
+	def speech_tail_EW(pixel_begin, lat, long)
+		
+		# Get variable by dynamic lookup.
+		balloon_tail = instance_variable_get("@balloon_tail_#{long}#{lat}")
+		tail_width   = balloon_tail[0].length
+		tail_height  = balloon_tail.length
+		map_height   = @pixel_map.length
+		is_north     = ( lat  == 'N' )
+		is_west      = ( long == 'W' )
+		
+		# Validate height. Raise error if pixel_begin is too high.
+		if pixel_begin + tail_height > map_height
+			raise 'pixel_begin is too high for the current pixel_map'
+		end
+		
+		# Need to add a break in the left/right line of the pixel_map.
+		border_break = '10001'
+		offset = is_north ? 2 :  0
+		elem   = is_west  ? 0 : -1
+		0.upto(border_break.length-1) do |i|
+			@pixel_map[pixel_begin+offset+i][elem] = border_break[i]
+		end
+		
+		# Create array with the appropriate balloon tail.
+		pixel_end = pixel_begin + tail_height
+		new = []
+		j = 0
+		0.upto(map_height-1) do |i|
+			if i < pixel_begin or i >= pixel_end
+				new << '0' * tail_width
+			else
+				new << balloon_tail[j].gsub(' ','0')
+				j += 1
+			end
+		end
+		
+		# Add to the existing @pixel_map
+		0.upto(map_height-1) do |i|
+			if is_west
+				@pixel_map[i] = new[i] + @pixel_map[i]
+			else
+				@pixel_map[i] = @pixel_map[i] + new[i]
+			end
+		end
+		
+	end
+	private :speech_tail_EW
 	
 	##############################################################################
 	

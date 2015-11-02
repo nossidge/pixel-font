@@ -35,4 +35,4 @@ build/
 .rvmrc
 
 # Testing files:
-work.rb
+work*.rb

@@ -61,11 +61,45 @@ font.to_pixels
 save_to_png(font.pixel_map,'lorum_5.png')
 
 # Handle some really long text.
-font.text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+font.text = %q(Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
+dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+sunt in culpa qui officia deserunt mollit anim id est laborum.).gsub(/\s+/,' ')
 font.to_paragraph(170)
 font.to_pixels
 font.border(3,6)
 font.border(1)
 save_to_png(font.pixel_map,'lorum_6.png')
+
+# Change the leading, tracking, and space width before calling #to_pixels.
+# You should alter the spacing before calling #to_paragraph.
+font.text = "Holy smokes, Batman!"
+font.leading = 4
+font.tracking = 4
+font.space_width = 4
+font.to_paragraph(80)
+font.to_pixels
+font.border(4,6)
+font.border(0)
+save_to_png(font.pixel_map,'batman_1.png')
+
+# Use #reset_spacing to reset the spacing variables to default.
+# Add a tail to turn it into a speech balloon.
+font.text = "Quick, Robin! To the Batmobile!!"
+font.reset_spacing
+font.to_paragraph(80)
+font.to_pixels
+font.border(3,6)
+font.speech('SE',79)
+save_to_png(font.pixel_map,'batman_2.png')
+
+# Speech balloon tail can also come from the side.
+# Use #to_pixels to re-draw from text. Removes any borders, etc.
+font.to_pixels
+font.border(3,6)
+font.speech('WS',13)
+save_to_png(font.pixel_map,'batman_3.png')
 
 ################################################################################

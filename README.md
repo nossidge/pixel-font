@@ -1,5 +1,5 @@
 # Pixel Font png
-by Paul Thompson - nossidge@gmail.com - tilde.town/~nossidge
+by Paul Thompson - nossidge@gmail.com - [tilde.town/~nossidge](http://tilde.town/~nossidge/)
 
 Create .png images of text strings, using a pixel font. Currently supports only one font, [Silkscreen](http://kottke.org/plus/type/silkscreen/) by Jason Kottke.
 
@@ -9,7 +9,11 @@ Create .png images of text strings, using a pixel font. Currently supports only 
 
 See the script `examples.rb` for usage.
 
+![Holy smokes, Batman!](img/batman_1.png?raw=true "Holy smokes, Batman!")
+
 See the directory `img` for example output.
+
+![Quick, Robin! To the Batmobile!!](img/batman_2.png?raw=true "Quick, Robin! To the Batmobile!!")
 
 ## Dependencies
 
