@@ -89,6 +89,16 @@ class PixelFont
 		self.space_width = 2
 	end
 	
+	##############################################################################
+	
+	# Dimensions of the pixel_map.
+	def map_width(pixel_map=@pixel_map)
+		pixel_map[0].length
+	end
+	def map_height(pixel_map=@pixel_map)
+		pixel_map.length
+	end
+	
   ##############################################################################
 	
 	def initialize
@@ -721,9 +731,7 @@ class PixelFont
 			'   ',
 			'   '
 		]
-		
-		############################################################################
-		
+		########################################
 		# Non-default Silkscreen characters.
 		@chars['–'] = [
 			'     ',
@@ -860,7 +868,6 @@ class PixelFont
 			'11  11',
 			' 1111 '
 		]
-		
 	end
 	
 	################################################################################
