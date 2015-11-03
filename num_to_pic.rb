@@ -70,8 +70,10 @@ class PicFromNumbers
 		highest_len = 0
 		@input_text_array.each do |i|
 			i_split = i.split('')
-			num = i_split.sort.uniq.map{ |j| CHARS.index(j) }.sort[-1]
 			len = i_split.length
+			
+			i_split.delete(' ') # Ignore transparent ' ' characters.
+			num = i_split.sort.uniq.map{ |j| CHARS.index(j) }.sort[-1]
 			
 			@highest_num = num if num > @highest_num
 			highest_len = len if len > highest_len
@@ -116,21 +118,31 @@ class PicFromNumbers
 			i_char = 0
 			line.split('').each do |char|
 				
-				# The colour multiplier of the cell.
-				multiplier = CHARS.index(char).to_f / @highest_num
-				
-				# Wrap in a method using a begin/rescue block.
-				# Fixes weird bug that I can't seem to replicate.
-				def try_colour(multiplier, line_colour)
-					begin
-						(multiplier * line_colour).to_i
-					rescue
-						255
+				# Space characters are fully transparent.
+				if char == ' '
+					colour_r = 0
+					colour_g = 0
+					colour_b = 0
+					colour_a = 0
+					
+				else
+					# The colour multiplier of the cell.
+					multiplier = CHARS.index(char).to_f / @highest_num
+					
+					# Wrap in a method using a begin/rescue block.
+					# Fixes weird bug that I can't seem to replicate.
+					def try_colour(multiplier, line_colour)
+						begin
+							(multiplier * line_colour).to_i
+						rescue
+							255
+						end
 					end
+					colour_r = try_colour(multiplier,line_colour_r)
+					colour_g = try_colour(multiplier,line_colour_g)
+					colour_b = try_colour(multiplier,line_colour_b)
+					colour_a = 255
 				end
-				colour_r = try_colour(multiplier,line_colour_r)
-				colour_g = try_colour(multiplier,line_colour_g)
-				colour_b = try_colour(multiplier,line_colour_b)
 				
 				# Handle inversion of colours if necessary.
 				if @colour_invert
@@ -138,7 +150,8 @@ class PicFromNumbers
 					colour_g = 255 - colour_g
 					colour_b = 255 - colour_b
 				end
-				colour = ChunkyPNG::Color.rgba(colour_r, colour_g, colour_b, 255)
+				
+				colour = ChunkyPNG::Color.rgba(colour_r, colour_g, colour_b, colour_a)
 				
 				# Draw each square.
 				png.rect(i_char, i_line,
