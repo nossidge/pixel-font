@@ -1033,13 +1033,13 @@ class PixelFont
 		output = output.map { |i| '1' + i + '1' }
 		
 		# Edit existing array to draw four inner corner pixels.
-		output[ 0][ 0.. 1] = '01'
-		output[-1][ 0.. 1] = '01'
-		output[ 0][-2..-1] = '10'
-		output[-1][-2..-1] = '10'
+		output[ 0][ 0.. 1] = ' 1'
+		output[-1][ 0.. 1] = ' 1'
+		output[ 0][-2..-1] = '1 '
+		output[-1][-2..-1] = '1 '
 		
 		# Draw solid line top and bottom border lines.
-		elem = '00' + ('1' * (output[0].length-4) ) + '00'
+		elem = '  ' + ('1' * (output[0].length-4) ) + '  '
 		output = output.unshift elem.clone
 		output = output.push    elem.clone
 		
@@ -1149,8 +1149,8 @@ class PixelFont
 		# For top/bottom tails, lengthen to the current width.
 		pixel_end = pixel_begin + tail_height
 		balloon_tail.map! do |i|
-			new = '0' * map_width
-			new[pixel_begin..pixel_end] = i.gsub(' ','0')
+			new = ' ' * map_width
+			new[pixel_begin..pixel_end] = i
 			new
 		end
 		
@@ -1195,9 +1195,9 @@ class PixelFont
 		j = 0
 		0.upto(map_height-1) do |i|
 			if i < pixel_begin or i >= pixel_end
-				new << '0' * tail_width
+				new << ' ' * tail_width
 			else
-				new << balloon_tail[j].gsub(' ','0')
+				new << balloon_tail[j]
 				j += 1
 			end
 		end
